@@ -104,35 +104,32 @@ export default class Canvas {
     drawScaleIndicators(): void {
         this.context.font = '12px Roboto'; // Example: 20px Arial
         this.context.fillStyle = 'black';
-        this.context.textAlign = 'center';
-        this.context.textBaseline = 'top';
-        
-        const scaleStep = 1;
-
+    
         const xAxisRange = Math.ceil(this.canvas.width / (2 * this.scale));
-        for (let i = -xAxisRange; i <= xAxisRange; i += scaleStep) {
-            const xCanvas = (i - this.cartesianCenter.x) * this.scale + this.canvas.width / 2;
-            this.context.fillText(i.toString(), xCanvas, this.canvas.height / 2 + 5);
-        }
-
-        this.context.textAlign = 'right';
-        this.context.textBaseline = 'middle';
         const yAxisRange = Math.ceil(this.canvas.height / (2 * this.scale));
-        for (let i = -yAxisRange; i <= yAxisRange; i += scaleStep) {
-            const yCanvas = this.canvas.height / 2 - (i - this.cartesianCenter.y) * this.scale;
-            if (i !== 0) {
-                this.context.fillText(i.toString(), this.canvas.width / 2 - 5, yCanvas);
-            }
+        const xAxisY = this.canvas.height / 2 - (0 - this.cartesianCenter.y) * this.scale;
+        const yAxisX = (0 - this.cartesianCenter.x) * this.scale + this.canvas.width / 2;
+    
+        for (let i = -xAxisRange; i <= xAxisRange; i++) {
+            if (i === 0) continue;
+            const xCanvas = this.translateCartesianToCanvas({ x: this.cartesianCenter.x + i, y: 0 }).x;
+            this.context.fillText(Math.ceil(this.cartesianCenter.x + i).toString(), xCanvas - 3, xAxisY + 15);
+        }
+    
+        for (let i = -yAxisRange; i <= yAxisRange; i++) {
+            const yCanvas = this.translateCartesianToCanvas({ x: 0, y: this.cartesianCenter.y + i }).y;
+            this.context.fillText(Math.ceil(this.cartesianCenter.y + i).toString(), yAxisX + 5, yCanvas + 5);
         }
     }
-
+    
+    
     drawSquares(): void {
         // Calculate the range of values for the squares
         const xRange = Math.ceil(this.canvas.width / (2 * this.scale));
         const yRange = Math.ceil(this.canvas.height / (2 * this.scale));
 
         // Calculate the length of a small square
-        const bigSquareLength = this.scale * 2;
+        const bigSquareLength = this.scale;
         const smallSquareLength = bigSquareLength / 5;
 
         // Clear canvas
@@ -158,6 +155,13 @@ export default class Canvas {
                 this.context.strokeRect(xCanvas, yCanvas, bigSquareLength, bigSquareLength);
             }
         }
+    }
+
+    isAxisVisible(): boolean {
+        const xRange = Math.ceil(this.canvas.width / (2 * this.scale));
+        const yRange = Math.ceil(this.canvas.height / (2 * this.scale));
+        return this.cartesianCenter.x >= -xRange && this.cartesianCenter.x <= xRange &&
+               this.cartesianCenter.y >= -yRange && this.cartesianCenter.y <= yRange;
     }
 }
 

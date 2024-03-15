@@ -56,7 +56,7 @@
         const deltaCartesianX = deltaX / canvas.scale * factor;
         const deltaCartesianY = deltaY / canvas.scale * factor;
 		canvas.cartesianCenter = {
-			x: canvas.cartesianCenter.x - deltaCartesianY,
+			x: canvas.cartesianCenter.x - deltaCartesianX,
 			y: canvas.cartesianCenter.y + deltaCartesianY
 		};
 		console.log(canvas.cartesianCenter);
