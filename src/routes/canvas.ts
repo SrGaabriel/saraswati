@@ -3,17 +3,18 @@ export default class Canvas {
     private context: CanvasRenderingContext2D
     public cartesianCenter: Point
     public scale: number
+    public canvasCenter: Point
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas
         this.context = canvas.getContext('2d')!!
         this.context.imageSmoothingEnabled = false;
         this.cartesianCenter = { x: 0, y: 0 }
-        this.scale = 50
+        this.scale = 100
         var windowScale = window.devicePixelRatio;
         canvas.width = canvas.clientWidth * windowScale;
         canvas.height = canvas.clientHeight * windowScale;
-        this.context.scale(windowScale, windowScale);
+        this.canvasCenter = {x:this.canvas.width/2, y:this.canvas.height/2}
     }
 
     translateCartesianToCanvas(point: Point): Point {
@@ -22,7 +23,7 @@ export default class Canvas {
         const xCanvas = (point.x - centerXCartesian) * this.scale + this.canvas.width / 2;
         const yCanvas = this.canvas.height / 2 - (point.y - centerYCartesian) * this.scale;
     
-        return { x: Math.round(xCanvas), y: Math.round(yCanvas) };
+        return { x: xCanvas, y: yCanvas };
     }
 
     translateCanvasToCartesian(point: Point): Point {
@@ -57,7 +58,6 @@ export default class Canvas {
             console.error("Canvas context is not supported!");
             return;
         }
-        const { x: centerXCartesian, y: centerYCartesian } = this.cartesianCenter;
     
         ctx.beginPath();
         ctx.strokeStyle = 'blue';
@@ -66,9 +66,9 @@ export default class Canvas {
         let firstPoint = true;
     
         for (let xCanvas = 0; xCanvas < this.canvas.width; xCanvas++) {
-            const xCartesian = (xCanvas - this.canvas.width / 2) / this.scale + centerXCartesian;
+            const xCartesian = this.translateCanvasToCartesian({x: xCanvas, y: 0}).x
             const yCartesian = fun(xCartesian);
-            const yCanvas = this.canvas.height / 2 - (yCartesian - centerYCartesian) * this.scale;
+            const yCanvas = this.translateCartesianToCanvas({x: 0, y: yCartesian}).y
     
             if (isFinite(yCanvas)) {
                 if (firstPoint) {
@@ -85,19 +85,18 @@ export default class Canvas {
 
     drawAxes() {
         // Draw X-axis
-        const xAxisY = this.canvas.height / 2 - (0 - this.cartesianCenter.y) * this.scale;
+        const axes = this.translateCartesianToCanvas({x:0, y:0});
         this.context.beginPath();
-        this.context.moveTo(0, xAxisY);
-        this.context.lineTo(this.canvas.width, xAxisY);
+        this.context.moveTo(0, axes.y);
+        this.context.lineTo(this.canvas.width, axes.y);
         this.context.strokeStyle = 'black';
         this.context.lineWidth = 1;
         this.context.stroke();
 
         // Draw Y-axis
-        const yAxisX = (0 - this.cartesianCenter.x) * this.scale + this.canvas.width / 2;
         this.context.beginPath();
-        this.context.moveTo(yAxisX, 0);
-        this.context.lineTo(yAxisX, this.canvas.height);
+        this.context.moveTo(axes.x, 0);
+        this.context.lineTo(axes.x, this.canvas.height);
         this.context.stroke();
     }
 
@@ -105,35 +104,43 @@ export default class Canvas {
         this.context.font = '12px Roboto'; // Example: 20px Arial
         this.context.fillStyle = 'black';
     
-        const xAxisRange = Math.ceil(this.canvas.width / (2 * this.scale));
-        const yAxisRange = Math.ceil(this.canvas.height / (2 * this.scale));
+        const xAxisRange = this.canvas.width / (2 * this.scale);
+        const yAxisRange = this.canvas.height / (2 * this.scale);
         const xAxisY = this.canvas.height / 2 - (0 - this.cartesianCenter.y) * this.scale;
         const yAxisX = (0 - this.cartesianCenter.x) * this.scale + this.canvas.width / 2;
-    
-        for (let i = -xAxisRange; i <= xAxisRange; i++) {
-            if (i === 0) continue;
-            const xCanvas = this.translateCartesianToCanvas({ x: this.cartesianCenter.x + i, y: 0 }).x;
-            this.context.fillText(Math.ceil(this.cartesianCenter.x + i).toString(), xCanvas - 3, xAxisY + 15);
+
+        console.log(this.cartesianCenter);
+
+        const numericInterval = this.calculateIntervalBasedOnScale();
+        const xSpatialInterval = xAxisRange / 20;
+        const ySpatialInterval = yAxisRange / 20;
+        const firstIndicatorInTheScreenX = Math.floor(-xAxisRange / xSpatialInterval) * xSpatialInterval;
+        const firstIndicatorInTheScreenY = Math.floor(-yAxisRange / ySpatialInterval) * ySpatialInterval;
+
+        for (let i = firstIndicatorInTheScreenX; i <= xAxisRange; i += xSpatialInterval) {
+            if (i == 0) {
+                continue;
+            }
+            const xCanvas = (i - this.cartesianCenter.x) * this.scale + this.canvas.width / 2;
+            this.context.fillText((i*(1-numericInterval)*-1).toFixed(2).toString(), xCanvas, xAxisY + 15);
         }
-    
-        for (let i = -yAxisRange; i <= yAxisRange; i++) {
-            const yCanvas = this.translateCartesianToCanvas({ x: 0, y: this.cartesianCenter.y + i }).y;
-            this.context.fillText(Math.ceil(this.cartesianCenter.y + i).toString(), yAxisX + 5, yCanvas + 5);
+        
+        for (let i = firstIndicatorInTheScreenY; i <= yAxisRange; i += ySpatialInterval) {
+            if (i == 0) {
+                continue;
+            }
+            const yCanvas = this.canvas.height / 2 - (i - this.cartesianCenter.y) * this.scale;
+            this.context.fillText((i*(1-numericInterval)*-1).toFixed(2).toString(), yAxisX - 15, yCanvas);
         }
     }
     
     
     drawSquares(): void {
-        // Calculate the range of values for the squares
         const xRange = Math.ceil(this.canvas.width / (2 * this.scale));
         const yRange = Math.ceil(this.canvas.height / (2 * this.scale));
 
-        // Calculate the length of a small square
         const bigSquareLength = this.scale;
         const smallSquareLength = bigSquareLength / 5;
-
-        // Clear canvas
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         // Draw squares
         this.context.strokeStyle = 'black';
@@ -162,6 +169,10 @@ export default class Canvas {
         const yRange = Math.ceil(this.canvas.height / (2 * this.scale));
         return this.cartesianCenter.x >= -xRange && this.cartesianCenter.x <= xRange &&
                this.cartesianCenter.y >= -yRange && this.cartesianCenter.y <= yRange;
+    }
+
+    calculateIntervalBasedOnScale(): number {
+        return this.scale / 100;
     }
 }
 

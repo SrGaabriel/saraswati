@@ -29,7 +29,6 @@
 
 		canvas.scale = (canvas.scale - event.deltaY * 0.05);
 		canvas.clear();
-		canvas.drawSquares();
 		canvas.drawAxes();
 		canvas.drawFunction(x => Math.sin(x));
 		canvas.drawFunction(x => (x-5)*(x-7)*(x+2));
@@ -37,12 +36,24 @@
 	}
 
 	function handleMouseDown(event: MouseEvent) {
+		const randomPoint = {x: 15, y:35}
+		const canvasPoint = canvas?.translateCartesianToCanvas(randomPoint);
+		const convertedPoint = canvas?.translateCanvasToCartesian(canvasPoint!!);
+		console.log(randomPoint, canvasPoint, convertedPoint);
+
+		
+
 		isDragging = true;
         lastX = event.clientX;
         lastY = event.clientY;
 	}
 
 	function handleDrag(event: MouseEvent) {
+		const randomPoint2 = {x: 0, y:0}
+		const canvasPoint2 = canvas?.translateCartesianToCanvas(randomPoint2);
+		const convertedPoint2 = canvas?.translateCanvasToCartesian(canvasPoint2!!);
+		const convertedPoint3 = canvas?.canvasCenter
+		console.log(randomPoint2, canvasPoint2, convertedPoint2, convertedPoint3);
 		if (!isDragging) return;
 
 		if (canvas === null) {
@@ -53,8 +64,8 @@
 
 		const factor = 0.05;
 
-        const deltaCartesianX = deltaX / canvas.scale * factor;
-        const deltaCartesianY = deltaY / canvas.scale * factor;
+        const deltaCartesianX = deltaX / canvas.scale / 2 * factor;
+        const deltaCartesianY = deltaY / canvas.scale / 2 * factor;
 		canvas.cartesianCenter = {
 			x: canvas.cartesianCenter.x - deltaCartesianX,
 			y: canvas.cartesianCenter.y + deltaCartesianY
@@ -83,9 +94,7 @@
 </svelte:head>
 
 <section class="app">
-	<div class="sidebar">
-		<Expression/>
-	</div>
+
 	<canvas id="graph" class="graph" on:wheel="{handleScroll}" on:mouseup={handleMouseUp} on:mousedown={handleMouseDown} on:mousemove={handleDrag}></canvas>
 </section>
 
@@ -107,5 +116,9 @@
 		width: 20%;
 		height: 100%;
 		border-right: 1px solid rgb(204, 204, 204);
+	}
+	.graph {
+		width: 100%;
+		height: 100%;
 	}
 </style>
