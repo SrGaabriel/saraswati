@@ -42,7 +42,6 @@ export default class Canvas {
     drawLine(start: Point, end: Point) {
         const startCanvas = this.translateCartesianToCanvas(start)
         const endCanvas = this.translateCartesianToCanvas(end)
-        console.log(startCanvas, endCanvas)
         this.context.beginPath()
         this.context.strokeStyle = 'green'
         this.context.lineWidth = 3
@@ -104,62 +103,57 @@ export default class Canvas {
         this.context.font = '12px Roboto'; // Example: 20px Arial
         this.context.fillStyle = 'black';
     
-        const xAxisRange = this.canvas.width / (2 * this.scale);
-        const yAxisRange = this.canvas.height / (2 * this.scale);
+        const xAxisRange = Math.ceil(this.canvas.width / (2 * this.scale));
+        const yAxisRange = Math.ceil(this.canvas.height / (2 * this.scale));
         const xAxisY = this.canvas.height / 2 - (0 - this.cartesianCenter.y) * this.scale;
         const yAxisX = (0 - this.cartesianCenter.x) * this.scale + this.canvas.width / 2;
 
-        console.log(this.cartesianCenter);
-
         const numericInterval = this.calculateIntervalBasedOnScale();
-        const xSpatialInterval = xAxisRange / 20;
-        const ySpatialInterval = yAxisRange / 20;
-        const firstIndicatorInTheScreenX = Math.floor(-xAxisRange / xSpatialInterval) * xSpatialInterval;
-        const firstIndicatorInTheScreenY = Math.floor(-yAxisRange / ySpatialInterval) * ySpatialInterval;
+        const globalSpatialInterval = Math.ceil(Math.max(xAxisRange, yAxisRange) / 10);
+        const firstIndicatorInTheScreenX = Math.floor(-xAxisRange / globalSpatialInterval) * globalSpatialInterval;
+        const firstIndicatorInTheScreenY = Math.floor(-yAxisRange / globalSpatialInterval) * globalSpatialInterval;
 
-        for (let i = firstIndicatorInTheScreenX; i <= xAxisRange; i += xSpatialInterval) {
-            if (i == 0) {
-                continue;
-            }
+        for (let i = firstIndicatorInTheScreenX; i <= xAxisRange; i += globalSpatialInterval) {
+            if (Math.round(i) === 0) continue;            
             const xCanvas = (i - this.cartesianCenter.x) * this.scale + this.canvas.width / 2;
-            this.context.fillText((i*(1-numericInterval)*-1).toFixed(2).toString(), xCanvas, xAxisY + 15);
+            console.log(i, numericInterval, this.scale, i*numericInterval);
+            this.context.fillText((i*numericInterval).toFixed(2).toString(), xCanvas-12, xAxisY + 15);
         }
         
-        for (let i = firstIndicatorInTheScreenY; i <= yAxisRange; i += ySpatialInterval) {
-            if (i == 0) {
-                continue;
-            }
+        for (let i = firstIndicatorInTheScreenY; i <= yAxisRange; i += globalSpatialInterval) {
             const yCanvas = this.canvas.height / 2 - (i - this.cartesianCenter.y) * this.scale;
-            this.context.fillText((i*(1-numericInterval)*-1).toFixed(2).toString(), yAxisX - 15, yCanvas);
+            this.context.fillText((i*numericInterval).toFixed(2).toString(), yAxisX - 35, yCanvas);
         }
+
+
     }
     
     
     drawSquares(): void {
-        const xRange = Math.ceil(this.canvas.width / (2 * this.scale));
-        const yRange = Math.ceil(this.canvas.height / (2 * this.scale));
+        this.context.font = '12px Roboto'; // Example: 20px Arial
+        this.context.fillStyle = 'black';
+    
+        const xAxisRange = Math.ceil(this.canvas.width / (2 * this.scale));
+        const yAxisRange = Math.ceil(this.canvas.height / (2 * this.scale));
+        const xAxisY = this.canvas.height / 2 - (0 - this.cartesianCenter.y) * this.scale;
+        const globalSpatialInterval = Math.ceil(Math.max(xAxisRange, yAxisRange) / 10);
+        const firstIndicatorInTheScreenX = Math.floor(-xAxisRange / globalSpatialInterval) * globalSpatialInterval;
+        const firstIndicatorInTheScreenY = Math.floor(-yAxisRange / globalSpatialInterval) * globalSpatialInterval;
 
-        const bigSquareLength = this.scale;
-        const smallSquareLength = bigSquareLength / 5;
-
-        // Draw squares
-        this.context.strokeStyle = 'black';
-        this.context.lineWidth = 2;
-        for (let i = -xRange; i <= xRange; i++) {
-            for (let j = -yRange; j <= yRange; j++) {
-                const xCanvas = (i - this.cartesianCenter.x) * bigSquareLength + this.canvas.width / 2;
-                const yCanvas = this.canvas.height / 2 - (j - this.cartesianCenter.y) * bigSquareLength;
-
-                this.context.lineWidth = 0.1;
-                for (let k = 0; k < 5; k++) {
-                    for (let l = 0; l < 5; l++) {
-                        this.context.strokeRect(xCanvas+smallSquareLength*k, yCanvas+smallSquareLength*l, smallSquareLength, smallSquareLength);
-
-                    }
-                }
-
-                this.context.lineWidth = 0.2;
-                this.context.strokeRect(xCanvas, yCanvas, bigSquareLength, bigSquareLength);
+        for (let i = firstIndicatorInTheScreenX; i <= xAxisRange; i += globalSpatialInterval) {
+            for (let j = firstIndicatorInTheScreenY; j <= yAxisRange; j += globalSpatialInterval) {
+                const xCanvas = (i - this.cartesianCenter.x) * this.scale + this.canvas.width / 2;
+                const previousXCanvas = (i - globalSpatialInterval - this.cartesianCenter.x) * this.scale + this.canvas.width / 2;
+                const yCanvas = this.canvas.height / 2 - (j - this.cartesianCenter.y) * this.scale;
+                this.context.beginPath();
+                this.context.strokeStyle = 'black';
+                this.context.lineWidth = 0.25;
+                this.context.moveTo(xCanvas, yCanvas);
+                this.context.lineTo(previousXCanvas, yCanvas);
+                this.context.moveTo(xCanvas, yCanvas);
+                this.context.lineTo(xCanvas, xAxisY);
+                this.context.stroke();
+                this.context.closePath();
             }
         }
     }

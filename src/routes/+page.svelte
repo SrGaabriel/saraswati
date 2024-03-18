@@ -27,8 +27,9 @@
 			return;
 		}
 
-		canvas.scale = (canvas.scale - event.deltaY * 0.05);
+		canvas.scale = Math.max(0.1, canvas.scale - event.deltaY * 0.05);
 		canvas.clear();
+		canvas.drawSquares();
 		canvas.drawAxes();
 		canvas.drawFunction(x => Math.sin(x));
 		canvas.drawFunction(x => (x-5)*(x-7)*(x+2));
