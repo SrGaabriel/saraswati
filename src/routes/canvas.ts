@@ -68,7 +68,7 @@ export default class Canvas {
             const xCartesian = this.translateCanvasToCartesian({x: xCanvas, y: 0}).x
             const yCartesian = fun(xCartesian);
             const yCanvas = this.translateCartesianToCanvas({x: 0, y: yCartesian}).y
-    
+
             if (isFinite(yCanvas)) {
                 if (firstPoint) {
                     ctx.moveTo(xCanvas, yCanvas);
@@ -100,7 +100,7 @@ export default class Canvas {
     }
 
     drawScaleIndicators(): void {
-        this.context.font = '12px Roboto'; // Example: 20px Arial
+        this.context.font = '12px Roboto';
         this.context.fillStyle = 'black';
     
         const xAxisRange = Math.ceil(this.canvas.width / (2 * this.scale));
@@ -108,24 +108,22 @@ export default class Canvas {
         const xAxisY = this.canvas.height / 2 - (0 - this.cartesianCenter.y) * this.scale;
         const yAxisX = (0 - this.cartesianCenter.x) * this.scale + this.canvas.width / 2;
 
-        const numericInterval = this.calculateIntervalBasedOnScale();
-        const globalSpatialInterval = Math.ceil(Math.max(xAxisRange, yAxisRange) / 10);
+        const globalSpatialInterval = Math.max(xAxisRange, yAxisRange) / 10;
         const firstIndicatorInTheScreenX = Math.floor(-xAxisRange / globalSpatialInterval) * globalSpatialInterval;
         const firstIndicatorInTheScreenY = Math.floor(-yAxisRange / globalSpatialInterval) * globalSpatialInterval;
 
         for (let i = firstIndicatorInTheScreenX; i <= xAxisRange; i += globalSpatialInterval) {
-            if (Math.round(i) === 0) continue;            
             const xCanvas = (i - this.cartesianCenter.x) * this.scale + this.canvas.width / 2;
-            console.log(i, numericInterval, this.scale, i*numericInterval);
-            this.context.fillText((i*numericInterval).toFixed(2).toString(), xCanvas-12, xAxisY + 15);
+            const point = this.translateCanvasToCartesian({x: xCanvas, y: xAxisY});
+            if (point.x === 0) continue;
+            this.context.fillText(point.x.toFixed(2).toString(), xCanvas-12, xAxisY + 15);
         }
         
         for (let i = firstIndicatorInTheScreenY; i <= yAxisRange; i += globalSpatialInterval) {
             const yCanvas = this.canvas.height / 2 - (i - this.cartesianCenter.y) * this.scale;
-            this.context.fillText((i*numericInterval).toFixed(2).toString(), yAxisX - 35, yCanvas);
+            const point = this.translateCanvasToCartesian({x: yAxisX, y: yCanvas});
+            this.context.fillText(point.y.toFixed(2).toString(), yAxisX - 35, yCanvas);
         }
-
-
     }
     
     
@@ -136,7 +134,7 @@ export default class Canvas {
         const xAxisRange = Math.ceil(this.canvas.width / (2 * this.scale));
         const yAxisRange = Math.ceil(this.canvas.height / (2 * this.scale));
         const xAxisY = this.canvas.height / 2 - (0 - this.cartesianCenter.y) * this.scale;
-        const globalSpatialInterval = Math.ceil(Math.max(xAxisRange, yAxisRange) / 10);
+        const globalSpatialInterval = Math.max(xAxisRange, yAxisRange) / 10;
         const firstIndicatorInTheScreenX = Math.floor(-xAxisRange / globalSpatialInterval) * globalSpatialInterval;
         const firstIndicatorInTheScreenY = Math.floor(-yAxisRange / globalSpatialInterval) * globalSpatialInterval;
 
@@ -151,7 +149,7 @@ export default class Canvas {
                 this.context.moveTo(xCanvas, yCanvas);
                 this.context.lineTo(previousXCanvas, yCanvas);
                 this.context.moveTo(xCanvas, yCanvas);
-                this.context.lineTo(xCanvas, xAxisY);
+                this.context.lineTo(xCanvas, yCanvas - globalSpatialInterval * this.scale);
                 this.context.stroke();
                 this.context.closePath();
             }
@@ -163,10 +161,6 @@ export default class Canvas {
         const yRange = Math.ceil(this.canvas.height / (2 * this.scale));
         return this.cartesianCenter.x >= -xRange && this.cartesianCenter.x <= xRange &&
                this.cartesianCenter.y >= -yRange && this.cartesianCenter.y <= yRange;
-    }
-
-    calculateIntervalBasedOnScale(): number {
-        return this.scale / 100;
     }
 }
 

@@ -17,6 +17,8 @@
 		canvas.drawAxes();
 		canvas.drawFunction(x => Math.sin(x));
 		canvas.drawFunction(x => (x-5)*(x-7)*(x+2));
+		canvas.drawFunction(x => Math.pow(x, 2));
+		canvas.drawFunction(x => x*2 + 5);
 		canvas.drawScaleIndicators();
 	});
 
@@ -33,6 +35,8 @@
 		canvas.drawAxes();
 		canvas.drawFunction(x => Math.sin(x));
 		canvas.drawFunction(x => (x-5)*(x-7)*(x+2));
+		canvas.drawFunction(x => Math.pow(x, 2));
+		canvas.drawFunction(x => x*2 + 5);
 		canvas.drawScaleIndicators();
 	}
 
@@ -78,6 +82,8 @@
 		canvas.drawAxes();
 		canvas.drawFunction(x => Math.sin(x));
 		canvas.drawFunction(x => (x-5)*(x-7)*(x+2));
+		canvas.drawFunction(x => Math.pow(x, 2));
+		canvas.drawFunction(x => x*2 + 5);
 		canvas.drawScaleIndicators();
 	}
 
@@ -95,7 +101,9 @@
 </svelte:head>
 
 <section class="app">
-
+	<div class="sidebar">
+		<Expression />
+	</div>
 	<canvas id="graph" class="graph" on:wheel="{handleScroll}" on:mouseup={handleMouseUp} on:mousedown={handleMouseDown} on:mousemove={handleDrag}></canvas>
 </section>
 
